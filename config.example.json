@@ -1,0 +1,43 @@
+{
+  "data": {
+    "storage_path": "./data",
+    "duckdb_file": "market_data.duckdb"
+  },
+  "backtest": {
+    "initial_cash": 1000000,
+    "commission": 0.0003
+  },
+  "logger": {
+    "level": "INFO",
+    "file": "./logs/mos.log"
+  },
+  "strategy": {
+    "etf_rotation": {
+      "lookback_period": 20,
+      "holding_period": 5
+    }
+  },
+  "tushare": {
+    "token": ""
+  },
+  "bigquant": {
+    "ak": "",
+    "sk": ""
+  },
+  "work": {
+    "nvqos": {
+      "host": "localhost",
+      "port": 8080,
+      "path": "/api/v1/trace",
+      "timeout": 30
+    },
+    "observe": {
+      "endpoint": "",
+      "api_key": ""
+    }
+  },
+  "plugin": {
+    "plugin_path": "~/.mos/plugins/",
+    "disabled_plugins": []
+  }
+}

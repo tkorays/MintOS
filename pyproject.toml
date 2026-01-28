@@ -1,0 +1,33 @@
+[project]
+name = "mos"
+version = "0.1.0"
+description = "Mind OS or Money OS"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # Core framework dependencies
+    "python-dotenv>=1.2.1",
+    "loguru",
+    "pydantic-settings",
+    "pydantic",
+    "requests>=2.32.0",
+    "click>=8.4.1",
+    "pyyaml>=6.0.1",
+    "mcp>=1.28.0",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pre-commit",
+    "ruff",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project.scripts]
+mos = "mos.cli.mos:cli"

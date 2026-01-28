@@ -1,0 +1,24 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: trailing-whitespace
+    name: Remove trailing whitespace
+    description: Trims trailing whitespace from files.
+  - id: end-of-file-fixer
+    name: Ensure file ends with newline
+    description: Ensures files end with a single newline character.
+  - id: check-yaml
+    name: Validate YAML files
+    description: Checks that YAML files are valid.
+  - id: check-added-large-files
+    name: Prevent large files from being committed
+    description: Checks for files larger than a specified size.
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.5.5
+  hooks:
+  - id: ruff
+    name: Python linter (ruff)
+    description: Fast Python linter written in Rust.
+    args: ['--fix', '--exit-non-zero-on-fix']
