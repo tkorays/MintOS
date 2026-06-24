@@ -1,6 +1,6 @@
 [project]
 name = "mos-core"
-version = "0.1.1"
+version = "0.1.2"
 description = "MOS is a MindOS, this is the core library."
 readme = "README.md"
 requires-python = ">=3.13"
