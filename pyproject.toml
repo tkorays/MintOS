@@ -15,6 +15,11 @@ dependencies = [
     "pyyaml>=6.0.1",
     "mcp>=1.28.0",
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
 
 
 [project.optional-dependencies]
@@ -31,3 +36,7 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 mos = "mos.cli.mos:cli"
+
+[project.urls]
+Homepage = "https://github.com/tkorays/MOS"
+Issues = "https://github.com/tkorays/MOS/issues"
