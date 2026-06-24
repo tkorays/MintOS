@@ -28,7 +28,7 @@ def isolated_config_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Pat
     return target
 
 
-from mos.core.config import Config, reload_config  # noqa: E402  (after fixture)
+from mos.core.config import Config, get_config  # noqa: E402  (after fixture)
 
 
 def _write(path: Path, data: dict[str, Any]) -> None:
@@ -99,12 +99,12 @@ def test_reload_config_picks_up_file_changes(
         "mos.core.config._config", None, raising=False
     )
 
-    cfg1 = reload_config()
+    cfg1 = get_config(reload=True)
     assert cfg1.debug is False
 
     # Now write a new file and reload.
     _write(isolated_config_path, {"debug": True, "log": {"level": "ERROR"}})
-    cfg2 = reload_config()
+    cfg2 = get_config(reload=True)
 
     assert cfg2 is not cfg1
     assert cfg2.debug is True

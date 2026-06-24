@@ -201,13 +201,12 @@ from mos.core.plugin import PluginDefinition
 def describe_plugin() -> PluginDefinition:
     """插件入口点函数。"""
     from mos_plugin.cli import plugin_cli
-    from mos_plugin.core.config import get_config, reload_config
+    from mos_plugin.core.config import get_config
 
     return PluginDefinition(
         name="plugin_name",
         command=plugin_cli,
         get_config=get_config,
-        reload_config=reload_config,
     )
 ```
 

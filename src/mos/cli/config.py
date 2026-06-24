@@ -4,7 +4,7 @@ from typing import Any, Callable
 import click
 from pydantic import ValidationError
 
-from mos.core.config import get_config, reload_config
+from mos.core.config import get_config
 from mos.core.plugin import get_registry
 from mos.core.logging import get_logger
 
@@ -17,26 +17,25 @@ def config():
     pass
 
 
-def _get_config_funcs(config_type: str) -> tuple[Callable, Callable]:
+def _get_config_func(config_type: str) -> Callable:
     """根据配置类型获取对应的配置管理函数
 
     Args:
         config_type: 配置类型，'main' 表示主配置，其他为插件名称
 
     Returns:
-        (get_config_func, reload_config_func)
+        get_config_func: 配置获取函数，支持 reload 参数
     """
     if config_type == "main":
-        return get_config, reload_config
+        return get_config
 
     registry = get_registry()
     get_func = registry.get_config_func(config_type)
-    reload_func = registry.get_reload_func(config_type)
 
-    if get_func is None or reload_func is None:
+    if get_func is None:
         raise click.ClickException(f"未知的配置类型: '{config_type}'。可用类型: main, {', '.join(registry.list_names())}")
 
-    return get_func, reload_func
+    return get_func
 
 
 def _format_value(value):
@@ -102,7 +101,7 @@ def list(config_type: str):
       mos config list --type wiki        # 列出 wiki 插件配置
     """
     try:
-        get_config_func, _ = _get_config_funcs(config_type)
+        get_config_func = _get_config_func(config_type)
         config_obj = get_config_func()
         config_dict = config_obj.model_dump()
         config_file = config_obj.config_file_path
@@ -136,7 +135,7 @@ def set(key, value, config_type: str):
       mos config set mini_qmt.path D:\\QMT --type quant
     """
     try:
-        get_config_func, reload_config_func = _get_config_funcs(config_type)
+        get_config_func = _get_config_func(config_type)
         keys = key.split(".")
         if not keys or not all(keys):
             raise click.ClickException(f"无效的 key: {key!r}")
@@ -157,7 +156,7 @@ def set(key, value, config_type: str):
             raise click.ClickException(f"配置项 {key!r} 校验失败: {e}")
 
         target = new_cfg.save()
-        reload_config_func()
+        get_config_func(reload=True)
 
         click.echo(f"[OK] 已设置 {config_type}.{key} = {value}")
         click.echo(f"  配置文件: {target}")
@@ -183,7 +182,7 @@ def get(key, config_type: str):
       mos config get database.path --type quant
     """
     try:
-        get_config_func, _ = _get_config_funcs(config_type)
+        get_config_func = _get_config_func(config_type)
         config_obj = get_config_func()
         value = config_obj.get(*key.split("."))
 

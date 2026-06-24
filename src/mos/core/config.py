@@ -2,9 +2,8 @@
 
 Project-specific config: the :class:`LogConfig` / :class:`LLMConfig`
 sub-models, the main :class:`Config` subclass that points at
-``~/.mos/config.json``, and the module-level ``get_config`` /
-``reload_config`` helpers. The generic :class:`BaseConfig` lives in
-:mod:`mos.core.baseconfig`.
+``~/.mos/config.json``, and the module-level ``get_config`` helper.
+The generic :class:`BaseConfig` lives in :mod:`mos.core.baseconfig`.
 
 Quant-specific config (DatabaseConfig, MiniQmtConfig, TimezoneConfig)
 has been moved to :mod:`mos.quant.core.config`.
@@ -116,16 +115,16 @@ class Config(BaseConfig):
 _config: Config | None = None
 
 
-def get_config() -> Config:
-    """Get or create global config instance"""
+def get_config(reload: bool = False) -> Config:
+    """Get or create global config instance.
+
+    Args:
+        reload: If True, reload config from file instead of using cached instance.
+
+    Returns:
+        The global Config instance.
+    """
     global _config
-    if _config is None:
+    if reload or _config is None:
         _config = Config.load()
-    return _config
-
-
-def reload_config() -> Config:
-    """Reload config from file"""
-    global _config
-    _config = Config.load()
     return _config
