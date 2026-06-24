@@ -10,7 +10,7 @@ from mos.cli.mcp import mcp
 
 
 @click.group()
-@click.version_option()
+@click.version_option(package_name="mos-core")
 def cli():
     setup_logging()
 

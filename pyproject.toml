@@ -1,7 +1,7 @@
 [project]
-name = "MintOS"
+name = "mos-core"
 version = "0.1.1"
-description = "Mind OS or Money OS"
+description = "MOS is a MindOS, this is the core library."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -38,5 +38,5 @@ build-backend = "setuptools.build_meta"
 mos = "mos.cli.mos:cli"
 
 [project.urls]
-Homepage = "https://github.com/tkorays/MOS"
-Issues = "https://github.com/tkorays/MOS/issues"
+Homepage = "https://github.com/tkorays/mos"
+Issues = "https://github.com/tkorays/mos/issues"
