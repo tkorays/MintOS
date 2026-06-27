@@ -50,6 +50,11 @@ class BaseConfig(BaseSettings):
     # config data — we don't want it round-tripping through the JSON).
     config_file_path: ClassVar[Path]
 
+    # Pydantic-settings configuration: subclasses SHOULD NOT override this.
+    # The env_prefix and env_nested_delimiter are standardized across all
+    # MOS configs to ensure consistent environment variable handling.
+    # If a subclass needs different behavior, consider using a separate
+    # BaseSettings class instead of inheriting from BaseConfig.
     model_config = SettingsConfigDict(
         json_file_encoding="utf-8",
         env_prefix="MOS_",
