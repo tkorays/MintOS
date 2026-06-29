@@ -29,10 +29,10 @@ ep_results = load_entry_point_plugins(disabled_plugins)
 for r in ep_results:
     if r.status == "loaded" and r.definition is not None:
         cmd = r.definition.command
+        # 只使用 Click 命令对象的名称注册，不使用 entry_point 名称
+        # 避免因 Click 自动转换 _ 为 - 导致重复注册
         if cmd.name and cmd.name not in cli.commands:
             cli.add_command(cmd)
-        if r.name != cmd.name and r.name not in cli.commands:
-            cli.add_command(cmd, name=r.name)
         # Register MCP tools if plugin supports it
         if r.definition.register_mcp:
             from mos.core.mcp import mcp
