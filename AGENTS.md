@@ -29,16 +29,27 @@ src/mos/
 │   ├── resource.py # 资源抽象
 │   ├── grafana/    # Grafana 集成
 │   ├── llm/        # LLM API 抽象
-│   └── dataflow/   # 数据流抽象
+│   ├── dataflow/   # 数据流抽象
+│   └── task/       # 后台任务管理
+│       ├── types.py         # 任务类型定义
+│       ├── registry.py      # 任务注册表
+│       ├── scheduler.py     # 任务调度器（基于 APScheduler）
+│       ├── event_bus.py     # 事件总线
+│       ├── process_manager.py # 进程管理器
+│       ├── manager.py       # 统一任务管理器
+│       └── storage/         # 存储后端
+│           ├── base.py      # 存储抽象接口
+│           └── file.py      # 文件系统存储
 ├── cli/            # 命令行工具
 │   ├── mos.py      # Click CLI 入口
 │   ├── config.py   # 配置命令
 │   ├── init.py     # 初始化命令
 │   ├── plugin.py   # 插件管理命令
-│   └── mcp.py      # MCP 命令
+│   ├── mcp.py      # MCP 命令
+│   └ task.py       # 任务管理命令
 └── __init__.py     # 包入口
 
-test/               # 测试目录
+tests/              # 测试目录
 plugins/            # 插件目录（被 .gitignore 忽略）
 ├── mos_agent/      # Agent 插件（独立仓库）
 ├── mos_quant/      # Quant 插件（独立仓库）
@@ -80,29 +91,37 @@ uv run mos init
 
 # 配置管理
 uv run mos config --help
+
+# 后台任务管理
+uv run mos task --help           # 查看任务命令帮助
+uv run mos task list             # 列出所有已注册任务
+uv run mos task status           # 查看任务调度器状态
+uv run mos task start            # 启动任务调度器（前台模式）
+uv run mos task start --daemon   # 启动任务调度器（守护进程模式）
+uv run mos task stop             # 停止守护进程
 ```
 
 ### 运行测试
 
 ```bash
 # 运行所有测试
-uv run pytest test/
+uv run pytest tests/
 
 # 运行单个测试文件
-uv run pytest test/test_database.py
+uv run pytest tests/test_database.py
 
 # 使用 unittest 直接运行
-uv run python -m pytest test/ -v
+uv run python -m pytest tests/ -v
 ```
 
 ### Lint 和代码格式化
 
 ```bash
 # 使用 ruff 检查代码
-uv run ruff check src/ test/
+uv run ruff check src/ tests/
 
 # 使用 ruff 自动修复
-uv run ruff check --fix src/ test/
+uv run ruff check --fix src/ tests/
 
 # 运行 pre-commit（对所有文件）
 uv run pre-commit run --all-files
@@ -132,7 +151,7 @@ uv run pre-commit run --all-files
   - 插件通过 `pyproject.toml` 声明 entry_points
   - 主程序通过 `importlib.metadata.entry_points()` 发现插件
   - 插件必须提供 `describe_plugin()` 函数返回 `PluginDefinition`
-  - 插件可以注册 CLI 命令、MCP 工具、配置等
+  - 插件可以注册 CLI 命令、MCP 工具、配置、后台任务等
 
 ### 配置管理
 
@@ -148,7 +167,7 @@ uv run pre-commit run --all-files
 
 ### 测试规范
 
-- 测试文件放在 `test/` 目录，命名 `test_*.py`
+- 测试文件放在 `tests/` 目录，命名 `test_*.py`
 - 使用 `unittest.TestCase` 编写测试类
 - 每个测试类需要 `setUp()` 和 `tearDown()` 方法清理测试数据
 
@@ -207,8 +226,101 @@ def describe_plugin() -> PluginDefinition:
         name="plugin_name",
         command=plugin_cli,
         get_config=get_config,
+        register_tasks=register_plugin_tasks,  # 可选：注册后台任务
     )
 ```
+
+## 后台任务开发规范
+
+### 任务类型
+
+MOS 支持三种任务触发类型：
+
+1. **Cron 任务**: 使用标准 cron 表达式定时执行
+2. **Interval 任务**: 按固定时间间隔执行
+3. **Event 任务**: 由事件触发执行
+
+### 注册任务函数
+
+插件通过 `register_tasks()` 函数注册后台任务：
+
+```python
+from mos.core.task import TaskDefinition, TaskTriggerType, TaskRegistry, EventBus
+
+def register_plugin_tasks(registry: TaskRegistry, event_bus: EventBus):
+    """注册插件的后台任务"""
+
+    # Cron 任务示例：每天早上 9 点执行
+    registry.register(TaskDefinition(
+        name="plugin.daily_task",
+        func=daily_task_func,
+        trigger_type=TaskTriggerType.CRON,
+        trigger_config={"cron": "0 9 * * 1-5"},
+        description="每日定时任务",
+    ))
+
+    # Interval 任务示例：每 5 分钟执行
+    registry.register(TaskDefinition(
+        name="plugin.interval_task",
+        func=interval_task_func,
+        trigger_type=TaskTriggerType.INTERVAL,
+        trigger_config={"minutes": 5},
+        description="间隔执行任务",
+    ))
+
+    # Event 任务示例：响应事件
+    registry.register(TaskDefinition(
+        name="plugin.event_task",
+        func=event_task_func,
+        trigger_type=TaskTriggerType.EVENT,
+        trigger_config={"event_type": "data_update"},
+        description="事件驱动任务",
+    ))
+    event_bus.subscribe("data_update", "plugin.event_task")
+```
+
+### 任务函数定义
+
+任务函数应该简洁、无阻塞：
+
+```python
+def daily_task_func():
+    """每日任务函数"""
+    from mos.core.logging import get_logger
+    logger = get_logger("plugin")
+
+    logger.info("开始执行每日任务")
+    try:
+        # 执行任务逻辑
+        ...
+        logger.info("每日任务执行成功")
+    except Exception as e:
+        logger.error(f"每日任务执行失败: {e}")
+
+def event_task_func(event_data):
+    """事件驱动任务函数（接收事件数据）"""
+    from mos.core.logging import get_logger
+    logger = get_logger("plugin")
+
+    logger.info(f"收到事件数据: {event_data}")
+    # 处理事件
+    ...
+```
+
+### 任务命名规范
+
+- 使用 `插件名.任务名` 格式（如 `quant.update_stock_list`）
+- 任务名使用 snake_case
+- 描述清晰说明任务用途
+
+### 存储后端
+
+任务状态和执行日志存储在 `~/.mos/tasks/` 目录：
+- 任务定义：`tasks.json`
+- 执行日志：`logs/{task_name}.jsonl`
+- 守护进程状态：`daemon_status.json`
+
+支持可插拔存储后端，后续可扩展至 DuckDB 或其他数据库。
 
 ## 注意事项
 
