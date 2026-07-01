@@ -21,7 +21,7 @@ class TaskManager:
 
         self.storage = FileBackend(storage_dir)
         self.registry = TaskRegistry()
-        self.scheduler = Scheduler(self.storage)
+        self.scheduler = Scheduler(self.storage, self.registry)
         self.event_bus = EventBus()
         self.process_manager = ProcessManager(
             storage_dir / "daemon.pid",
@@ -51,6 +51,13 @@ class TaskManager:
     def start_foreground(self):
         """前台启动"""
         self.scheduler.start()
+        # 保持主线程运行，防止程序退出
+        try:
+            import time
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.scheduler.stop()
 
     def stop_foreground(self):
         """停止前台运行"""

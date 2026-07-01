@@ -11,14 +11,16 @@ from datetime import datetime
 class Scheduler:
     """基于 APScheduler 的任务调度器"""
 
-    def __init__(self, storage_backend: StorageBackend):
+    def __init__(self, storage_backend: StorageBackend, registry=None):
         self._scheduler = BackgroundScheduler()
         self._storage = storage_backend
+        self._registry = registry
         self._running = False
 
     def start(self):
         """启动调度器"""
         if not self._running:
+            self._load_tasks_from_registry()
             self._load_tasks_from_storage()
             self._scheduler.start()
             self._running = True
@@ -96,3 +98,13 @@ class Scheduler:
             # 注意：这里只加载任务定义，不执行
             # 实际的任务函数需要在插件注册时重新绑定
             pass
+
+    def _load_tasks_from_registry(self):
+        """从注册表加载任务"""
+        if self._registry is None:
+            return
+
+        tasks = self._registry.list_all()
+        for task in tasks:
+            if task.enabled and task.trigger_type in (TaskTriggerType.CRON, TaskTriggerType.INTERVAL):
+                self._schedule_task(task)
