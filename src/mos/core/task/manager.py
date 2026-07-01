@@ -65,7 +65,8 @@ class TaskManager:
 
     def start_daemon(self):
         """守护进程模式启动"""
-        self.process_manager.start(self._daemon_target)
+        # 使用 subprocess 启动独立的守护进程
+        self.process_manager.start(None)
 
     def stop_daemon(self):
         """停止守护进程"""
@@ -73,7 +74,7 @@ class TaskManager:
 
     def restart_daemon(self):
         """重启守护进程"""
-        self.process_manager.restart(self._daemon_target)
+        self.process_manager.restart(None)
 
     def get_status(self) -> dict:
         """获取任务管理器状态"""
@@ -112,14 +113,6 @@ class TaskManager:
             return {"success": True, "duration": 0}
         except Exception as e:
             return {"success": False, "error": str(e)}
-
-    def _daemon_target(self):
-        """守护进程目标函数"""
-        self.scheduler.start()
-        # 保持运行
-        import time
-        while True:
-            time.sleep(60)
 
 
 # 全局任务管理器实例

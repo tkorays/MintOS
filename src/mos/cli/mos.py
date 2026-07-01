@@ -13,6 +13,9 @@ from mos.cli.task import task
 @click.group()
 @click.version_option(package_name="mos-core")
 def cli():
+    # Windows 上 multiprocessing 需要 freeze_support
+    import multiprocessing
+    multiprocessing.freeze_support()
     setup_logging()
 
 
@@ -47,4 +50,7 @@ for r in ep_results:
 
 
 if __name__ == "__main__":
+    # Windows 上 multiprocessing 需要 freeze_support
+    import multiprocessing
+    multiprocessing.freeze_support()
     cli()
