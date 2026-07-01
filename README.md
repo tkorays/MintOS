@@ -8,6 +8,7 @@ MOS，它是一个思维操作系统（MindOS），是一个基于 Python 的插
 - **依赖隔离**：每个插件独立管理依赖，主仓库只包含核心框架
 - **灵活安装**：插件可通过 pip 安装，支持从 Git、PyPI 或本地安装
 - **后台任务管理**：支持插件注册定时、间隔、事件驱动的后台任务，提供 CLI 前台和守护进程两种运行模式
+- **Streamlit Web 界面**：统一的 Web 管理界面，插件可注册自定义页面
 
 ## 可用插件
 
@@ -25,6 +26,9 @@ MOS 通过插件扩展功能，目前已有的插件：
 # 安装核心框架(PyPI上的包名为mos-core)
 pip install mos-core
 
+# 安装 web 依赖（可选）
+pip install "mos-core[web]"
+
 # 安装插件（从 GitHub）
 pip install git+https://github.com/tkorays/mos_quant.git
 pip install git+https://github.com/tkorays/mos_wiki.git
@@ -32,6 +36,9 @@ pip install git+https://github.com/tkorays/mos_agent.git
 
 # 查看已加载插件
 mos plugin list
+
+# 启动 Web 管理界面
+mos streamlit
 
 # 后台任务管理
 mos task --help           # 查看任务命令帮助

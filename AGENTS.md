@@ -227,7 +227,103 @@ def describe_plugin() -> PluginDefinition:
         command=plugin_cli,
         get_config=get_config,
         register_tasks=register_plugin_tasks,  # 可选：注册后台任务
+        register_streamlit=register_streamlit,  # 可选：注册 Streamlit 页面
     )
+```
+
+## Streamlit Web 页面开发规范
+
+插件可以注册 Streamlit Web 页面，在统一的 `mos streamlit` 界面中展示。
+
+### 页面注册流程
+
+1. **创建页面函数**：将 Streamlit 页面代码封装为函数
+2. **实现注册函数**：返回 `StreamlitPluginInfo` 信息
+3. **在 describe_plugin 中注册**：添加 `register_streamlit` 字段
+
+### 页面函数示例
+
+```python
+# mos_plugin/web/pages/my_page.py
+
+def my_page():
+    """页面函数，不要调用 st.set_page_config"""
+    import streamlit as st
+
+    st.title("📊 我的页面")
+    st.markdown("---")
+
+    # 页面逻辑
+    ...
+```
+
+**注意**：页面函数内部**不要调用** `st.set_page_config`，它由 MOS 主入口统一设置。
+
+### 注册函数示例
+
+```python
+# mos_plugin/web/streamlit_register.py
+
+from mos.core.streamlit import StreamlitPageDef, StreamlitPluginInfo
+
+def register_streamlit() -> StreamlitPluginInfo:
+    """注册插件的 Streamlit 页面"""
+    from mos_plugin.web.pages.my_page import my_page
+    from mos_plugin.web.pages.another_page import another_page
+
+    return StreamlitPluginInfo(
+        name="我的插件",       # 一级菜单名称
+        icon="📊",            # 插件图标
+        description="插件描述", # 可选
+        pages=[
+            StreamlitPageDef(
+                func=my_page,
+                title="页面一",  # 二级菜单名称
+                icon="📈",
+            ),
+            StreamlitPageDef(
+                func=another_page,
+                title="页面二",
+                icon="📉",
+            ),
+        ],
+    )
+```
+
+### 导航结构
+
+MOS Streamlit 的导航结构：
+
+- **一级菜单**：插件入口（`StreamlitPluginInfo.name`）
+- **二级菜单**：插件页面（`StreamlitPageDef.title`）
+
+例如：
+```
+主页
+财联社电报
+  └─ 新闻查看
+量化交易
+  ├─ 数据管理
+  ├─ K线查看
+  ├─ 回测运行
+  └─ 实盘交易
+```
+
+### 依赖配置
+
+插件需要在 `pyproject.toml` 中声明 streamlit 依赖：
+
+```toml
+[project.optional-dependencies]
+web = [
+    "streamlit>=1.30.0",
+    "pandas>=2.0.0",
+]
+```
+
+安装方式：
+```bash
+pip install "mos-plugin[web]"
 ```
 
 ## 后台任务开发规范
