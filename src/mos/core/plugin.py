@@ -95,6 +95,8 @@ class PluginDefinition:
         register_mcp: Optional function to register MCP tools.
         register_tasks: Optional function to register background tasks.
             The function should accept a TaskRegistry and EventBus parameter.
+        register_streamlit: Optional function to register Streamlit pages.
+            The function should return a StreamlitPluginInfo instance.
     """
 
     name: str
@@ -104,6 +106,7 @@ class PluginDefinition:
     init: Optional[Callable] = None
     register_mcp: Optional[Callable] = None
     register_tasks: Optional[Callable] = None
+    register_streamlit: Optional[Callable] = None
 
 
 class PluginRegistry:

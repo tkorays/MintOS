@@ -8,6 +8,7 @@ from mos.cli.init import init
 from mos.cli.plugin import plugin as plugin_cmd
 from mos.cli.mcp import mcp
 from mos.cli.task import task
+from mos.cli.streamlit import streamlit
 
 
 @click.group()
@@ -24,6 +25,7 @@ cli.add_command(init)
 cli.add_command(plugin_cmd)
 cli.add_command(mcp)
 cli.add_command(task)
+cli.add_command(streamlit)
 
 
 cfg = get_config()
